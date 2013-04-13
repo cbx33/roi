@@ -68,22 +68,28 @@ class Search():
         resultSet = []
         for entry in self.sortedResults[::-1][0:5]:
             sub_entry = entry[0].split(",")
+            packFile = str(int(sub_entry[1])-(int(sub_entry[1])%self.config.packSize))
+            destFilename = os.path.join(self.config.transIndex, sub_entry[0], self.dlang, packFile)
+            sourceFilename = os.path.join(self.config.transIndex, sub_entry[0], self.slang, packFile)
+            iid = sub_entry[1]
+            project = sub_entry[0]
+
             try:
-                packFile = str(int(sub_entry[1])-(int(sub_entry[1])%self.config.packSize))
-                destFilename = os.path.join(self.config.transIndex, sub_entry[0], self.dlang, packFile)
-                destFileHandle = open(destFilename)
-                sourceFilename = os.path.join(self.config.transIndex, sub_entry[0], self.slang, packFile)
                 sourceFileHandle = open(sourceFilename)
-                slangJSON = json.load(sourceFileHandle)
-                dlangJSON = json.load(destFileHandle)
-                iid = sub_entry[1]
-                project = sub_entry[0]
-                slangResult = slangJSON[iid]
-                dlangResult = dlangJSON[iid]
-                resultInstance = self.Result(self.dlang, self.slang, sub_entry[1], slangResult, dlangResult, project)
-                resultSet.append(resultInstance)
-                sourceFileHandle.close()
-                destFileHandle.close()
+                destFileHandle = open(destFilename)
             except IOError:
                 continue
+
+            slangJSON = json.load(sourceFileHandle)
+            dlangJSON = json.load(destFileHandle)
+
+            sourceFileHandle.close()
+            destFileHandle.close()
+
+            slangResult = slangJSON[iid]
+            dlangResult = dlangJSON[iid]
+
+            resultInstance = self.Result(self.dlang, self.slang, sub_entry[1], slangResult, dlangResult, project)
+            resultSet.append(resultInstance)
+
         return resultSet
