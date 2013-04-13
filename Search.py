@@ -20,9 +20,6 @@ class Search():
             self.slangResult = slangResult
             self.dlangResult = dlangResult
             self.project = project
-        
-        #def __getitem__(self):
-        #    return [self.slang, self.dlang, self.iid, self.slangResult, self.dlangResult, self.project]
     
     def __init__(self, term, slang, dlang, config):
         print "Creating Search Object"
