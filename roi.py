@@ -8,11 +8,24 @@ import ConfigParser
 import os.path
 import Error
 import sys
+import Search
 
 class ROIIndexer:
     
     def __init__(self, configFileName):
         self.config = self.Config(configFileName)
+
+    def search(self, term, slang, dlang):
+        SearchObject = Search.Search(term, slang, dlang, self.config)
+        results = SearchObject.returnResults()
+        for result in results:
+            print "================="
+            print result.project + "-" + result.iid
+            print "-----------------"
+            print result.slangResult
+            print "-----------------"
+            print result.dlangResult
+        print "================="
 
     class Config():
 
@@ -22,17 +35,16 @@ class ROIIndexer:
                 self.checkConfig()
             except Error.ConfigError as e:
                 print e.val
-            sys.exit(0)
+                sys.exit(0)
             
         def getConfig(self, configFileName):
             self.config = ConfigParser.SafeConfigParser()
             if not os.path.exists(configFileName):
                 raise Error.ConfigError(Error.FileNotExist)
-                return False
+
             successfulConfig = self.config.read(configFileName)
             if successfulConfig == []:
                 raise Error.ConfigError(Error.FileNotParsable)
-                return False
         
         def checkConfig(self):
             try:
@@ -53,6 +65,7 @@ class ROIIndexer:
                 raise Error.ConfigError(Error.MissingOption, e)
             except ConfigParser.NoSectionError as e:
                 raise Error.ConfigError(Error.MissingSection, e)
-        
+                
 if __name__ == "__main__":
     index = ROIIndexer('roi.cfg')
+    index.search("you", "en_GB.po", "ja.po")
