@@ -29,9 +29,9 @@ class ROIIndexer(object):
             print result.dlangResult
         print "================="
 
-    def index(self):
-        IndexObject = Index.Index(self.config)
-        IndexObject.fullReindex
+    def fullIndex(self, source):
+        indexObject = Index.Index(self.config)
+        indexObject.fullIndex(source)
 
     class Config(object):
 

@@ -14,6 +14,8 @@ MissingOption = 5
 
 #Index Errors
 SourceDirectoryNotExist = 0
+TransIndexNotEmpty = 1
+WordIndexNotEmpty = 2
 
 class ConfigError(Exception):
     def __init__(self, CEType, error=""):
@@ -41,6 +43,10 @@ class ROIIndexError(Exception):
         self.type = CEType
         if self.type == SourceDirectoryNotExist:
             self.val = "The source directory could not be found" 
+        elif self.type == TransIndexNotEmpty:
+            self.val = "Translation Index is not empty" 
+        elif self.type == WordIndexNotEmpty:
+            self.val = "Word Index is not empty" 
         else:
             self.val = "Undefined Error"
 
