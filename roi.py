@@ -10,6 +10,7 @@ import Error
 import sys
 import Search
 import CLI
+import Index
 
 class ROIIndexer(object):
     
@@ -27,6 +28,10 @@ class ROIIndexer(object):
             print "-----------------"
             print result.dlangResult
         print "================="
+
+    def index(self):
+        IndexObject = Index.Index(self.config)
+        IndexObject.fullReindex
 
     class Config(object):
 
