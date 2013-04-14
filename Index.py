@@ -46,75 +46,41 @@ class Index():
             self.wordIndex = wordIndex
             self.transIndex = transIndex
             self.packSize = packSize
+            self.pattern = re.compile('[^a-zA-Z0-9 ]+')
+            self.projTransIndex = os.path.join(self.transIndex, self.project)
         
         def indexProject(self):
             self.windex = {}
             self.id_database = {}
             self.indexmeta = {}
             self.index = 0
-    
-            pos = ['en_GB.po','de.po','fr.po','as.po','az.po','be.po','cs.po','dz.po','ja.po']
             
-            for pod in pos:
-        
-                #self.indexProjectLanguage(pod, project)
-                self.indexmeta[pod] = {}
-                self.windex[pod] = {}
-    
-                if not os.path.exists(self.transIndex+"/"+self.project+"/"+pod):
-                    os.makedirs(self.transIndex+"/"+self.project+"/"+pod)
-                print pod
-                print self.source+"/"+self.project+"/"+pod
-                po = polib.pofile(self.source+"/"+self.project+"/"+pod)
-                pattern = re.compile('[^a-zA-Z0-9 ]+')
-                for entry in po.translated_entries():
-                    # entry.msgid, entry.msgstr
-                    sanitised = pattern.sub(' ', entry.msgstr)
-                    words=pattern.sub('', sanitised).split(" ")
-    
-                    key = ",".join(map(lambda x:",".join(x), entry.occurrences))
-    
-                    if pod == "en_GB.po":
-                        self.id_database[key] = [self.index, entry.msgid]
-    
-                    for word in words:
-                        if len(word)>1:
-                            wlower = word.lower()
-                            pair = wlower[0:2]
-                            
-                            if not self.windex[pod].has_key(wlower[0:2]):
-                                self.windex[pod][wlower[0:2]] = {wlower:{self.project:[]}}
-                            else:
-                                if not self.windex[pod][wlower[0:2]].has_key(wlower):
-                                    self.windex[pod][wlower[0:2]][wlower] = {self.project:[]}
-                            try:
-                                self.windex[pod][wlower[0:2]][wlower][self.project].append(self.id_database[key][0])
-                            except KeyError:
-                                continue
-    
-                    try:
-                        ourindex = str(self.id_database[key][0])
-                        self.indexmeta[pod][int(ourindex)] = entry.msgstr
-                    except KeyError:
-                        continue
-    
-                    self.index += 1
+            self.projectDir = os.path.join(self.source, self.project)
+            
+            #This is nasty right now, but necessary as the indexer NEEDS en_GB to be first
+            podlist = os.listdir(self.projectDir)
+            if "en_GB.po" in podlist:
+                podlist.remove("en_GB.po")
+            podlist = ["en_GB.po"] + podlist
+            
+            for pod in podlist:
+                self.indexProjectLanguage(pod)
         
             for pod in self.indexmeta:
                 for p in range(0, len(self.indexmeta[pod]), self.packSize):
-                    f = open(self.transIndex+"/"+self.project+"/"+pod+"/"+str(p),"w")
+                    f = open(self.projTransIndex+"/"+pod+"/"+str(p),"w")
                     todump = {}
                     for a in range(p, p+self.packSize):
                         try:
                             todump[a] = self.indexmeta[pod][a]
                         except KeyError:
-                            if p<len(self.indexmeta[pod]):
+                            if p < len(self.indexmeta[pod]):
                                 continue
                             else:
                                 break
                     json.dump(todump, f)
                     f.close()
-        
+
             for pod in self.windex:
                 for pair in self.windex[pod]:
                     odir = self.wordIndex+"/"+pod+"/"+pair
@@ -139,3 +105,47 @@ class Index():
                         f = open(odir+"/"+pair, "w")
                         json.dump(self.windex[pod][pair], f)
                         f.close()
+                        
+        def indexProjectLanguage(self, pod):
+            self.indexmeta[pod] = {}
+            self.windex[pod] = {}
+            projectLangTransIndex = self.projTransIndex+"/"+pod
+
+            if not os.path.exists(projectLangTransIndex):
+                os.makedirs(projectLangTransIndex)
+            print pod
+            print self.projectDir+"/"+pod
+            po = polib.pofile(self.projectDir+"/"+pod)
+            
+            for entry in po.translated_entries():
+                # entry.msgid, entry.msgstr
+                sanitised = self.pattern.sub(' ', entry.msgstr)
+                words = self.pattern.sub('', sanitised).split(" ")
+
+                key = ",".join(map(lambda x:",".join(x), entry.occurrences))
+
+                if pod == "en_GB.po":
+                    self.id_database[key] = [self.index, entry.msgid]
+
+                for word in words:
+                    if len(word)>1:
+                        wlower = word.lower()
+                        pair = wlower[0:2]
+                        
+                        if not self.windex[pod].has_key(pair):
+                            self.windex[pod][pair] = {wlower:{self.project:[]}}
+                        else:
+                            if not self.windex[pod][pair].has_key(wlower):
+                                self.windex[pod][pair][wlower] = {self.project:[]}
+                        try:
+                            self.windex[pod][pair][wlower][self.project].append(self.id_database[key][0])
+                        except KeyError:
+                            continue
+
+                try:
+                    ourindex = str(self.id_database[key][0])
+                    self.indexmeta[pod][int(ourindex)] = entry.msgstr
+                except KeyError:
+                    continue
+
+                self.index += 1
