@@ -4,6 +4,13 @@ Created on 14 Apr 2013
 @author: pete
 '''
 
+#TODO - Need to make it not rely on en_GB.po for indexing, 
+#       will use msgid instead.
+#TODO - Split out the pod function into a separate function
+#TODO - Make the word indexer reusable for partial indexing
+#TODO - Make the project indexer reusable for partial indexing
+#TODO - Search for languages, not a list :p
+
 import polib
 import re
 import os
