@@ -25,6 +25,7 @@ class Index():
         self.packSize = self.config.packSize
 
     def fullIndex(self, source):
+        self.counter = 0
         self.source = source
         if not os.path.exists(self.source):
             raise Error.ROIIndexError(Error.SourceDirectoryNotExist)
@@ -37,9 +38,12 @@ class Index():
         for projectName in os.listdir(self.source):
             projectInstance = self.Project(projectName, self.transIndex, self.wordIndex, self.packSize, self.source)
             projectInstance.indexProject()
+            self.counter += projectInstance.counter
+        print self.counter
 
     class Project():
         def __init__(self, project, transIndex, wordIndex, packSize, source):
+            self.counter = 0
             self.project = project
             self.source = source
             self.wordIndex = wordIndex
@@ -122,6 +126,7 @@ class Index():
                 # entry.msgid, entry.msgstr
                 sanitised = self.pattern.sub(' ', entry.msgstr)
                 words = self.pattern.sub('', sanitised).split(" ")
+                self.counter += 1
 
                 key = ",".join(map(lambda x:",".join(x), entry.occurrences))
 
