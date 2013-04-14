@@ -13,7 +13,6 @@ Created on 14 Apr 2013
 
 import polib
 import re
-import os
 import os.path
 import json
 import Error
@@ -61,6 +60,8 @@ class Index():
             podlist = os.listdir(self.projectDir)
             if "en_GB.po" in podlist:
                 podlist.remove("en_GB.po")
+            else:
+                raise Error.ROIIndexError(Error.MissingBrits)
             podlist = ["en_GB.po"] + podlist
             
             for pod in podlist:

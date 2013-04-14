@@ -16,6 +16,7 @@ MissingOption = 5
 SourceDirectoryNotExist = 0
 TransIndexNotEmpty = 1
 WordIndexNotEmpty = 2
+MissingBrits = 3
 
 class ConfigError(Exception):
     def __init__(self, CEType, error=""):
@@ -47,6 +48,8 @@ class ROIIndexError(Exception):
             self.val = "Translation Index is not empty" 
         elif self.type == WordIndexNotEmpty:
             self.val = "Word Index is not empty" 
+        elif self.type == MissingBrits:
+            self.val = "The Brits are missing" 
         else:
             self.val = "Undefined Error"
 
