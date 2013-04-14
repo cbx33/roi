@@ -9,7 +9,7 @@ import os.path
 import Error
 import sys
 import Search
-from optparse import OptionParser
+import CLI
 
 class ROIIndexer(object):
     
@@ -57,7 +57,7 @@ class ROIIndexer(object):
                 if not os.path.isdir(self.transIndex):
                     raise Error.ConfigError(Error.TransIndexNotExist)
         
-                self.packSize = self.config.getint('Main', 'packSize')
+                self.packSize = self.config.getint('Main', 'PackSize')
                 
                 #At the moment overriding this setting
                 if self.packSize != 100:
@@ -68,39 +68,8 @@ class ROIIndexer(object):
                 raise Error.ConfigError(Error.MissingSection, e)
 
 def main():
-
-    description = "Indexer"
-    usage = "Usage: %prog <CFG_FILE>"
-    epilog = "Constructive comments and feedback gladly accepted."
-    version = "%prog version 0.1"
-
-    parser = OptionParser(usage=usage, description=description, epilog=epilog, version=version)
-    parser.add_option('--cfg', dest='cfg_file', metavar='<cfg_file>', help='Configuration file.')
-    parser.add_option('-q', '--query', dest='query', help='The term to use in your query.')
-    parser.add_option('-o', '--origin', dest='origin', default='en_US.po', help='The original language file to use in your query.')
-    parser.add_option('-t', '--target', dest='target', help='The target language file to perform your search.')
-
-    # Verify arguments
-    (opts, args) = parser.parse_args()
-
-    # A configuration file is required
-    if not opts.cfg_file:
-        print "Please provide a configuration file."
-        parser.print_help()
-        sys.exit(-1)
-
-    # Don't allow queries for empty strings
-    if not opts.query or len(opts.query) == 0:
-        print "Please provide a valid string to perform your query."
-        parser.print_help()
-        sys.exit(-1)
-
-    # Make sure that a target language file is provided
-    if not opts.target:
-        print "A target language file is required."
-        parser.print_help()
-        sys.exit(-1)
-        
+    parserObject = CLI.CLIParser()
+    opts = parserObject.returnOptions()
     index = ROIIndexer(opts.cfg_file)
     index.search(opts.query, opts.origin, opts.target)
     
