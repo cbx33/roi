@@ -4,18 +4,25 @@ Created on 14 Apr 2013
 @author: pete
 '''
 
-#TODO - Need to make it not rely on en_GB.po for indexing, 
+#TODO - Need to make it not rely on en_GB.po for indexing,
 #       will use msgid instead.
 #TODO - Split out the pod function into a separate function
 #TODO - Make the word indexer reusable for partial indexing
 #TODO - Make the project indexer reusable for partial indexing
 #TODO - Search for languages, not a list :p
 
-import polib
 import re
 import os.path
 import json
 import Error
+import sys
+
+try:
+    import polib
+except ImportError, e:
+    print "Please install Polib https://pypi.python.org/pypi/polib/"
+    sys.exit(-1)
+
 
 class Index():
     def __init__(self, config):
@@ -34,7 +41,7 @@ class Index():
             raise Error.ROIIndexError(Error.TransIndexNotEmpty)
         if not os.listdir(self.wordIndex) == []:
             raise Error.ROIIndexError(Error.WordIndexNotEmpty)
-        
+
         for projectName in os.listdir(self.source):
             projectInstance = self.Project(projectName, self.transIndex, self.wordIndex, self.packSize, self.source)
             projectInstance.indexProject()
@@ -51,15 +58,15 @@ class Index():
             self.packSize = packSize
             self.pattern = re.compile('[^a-zA-Z0-9 ]+')
             self.projTransIndex = os.path.join(self.transIndex, self.project)
-        
+
         def indexProject(self):
             self.windex = {}
             self.id_database = {}
             self.indexmeta = {}
             self.index = 0
-            
+
             self.projectDir = os.path.join(self.source, self.project)
-            
+
             #This is nasty right now, but necessary as the indexer NEEDS en_GB to be first
             podlist = os.listdir(self.projectDir)
             if "en_GB.po" in podlist:
@@ -67,10 +74,10 @@ class Index():
             else:
                 raise Error.ROIIndexError(Error.MissingBrits)
             podlist = ["en_GB.po"] + podlist
-            
+
             for pod in podlist:
                 self.indexProjectLanguage(pod)
-        
+
             for pod in self.indexmeta:
                 for p in range(0, len(self.indexmeta[pod]), self.packSize):
                     f = open(self.projTransIndex+"/"+pod+"/"+str(p),"w")
@@ -91,18 +98,18 @@ class Index():
                     odir = self.wordIndex+"/"+pod+"/"+pair
                     if not os.path.exists(odir):
                         os.makedirs(odir)
-        
+
                     if os.path.exists(self.wordIndex+"/"+pod+"/"+pair+"/"+pair):
                         f = open(self.wordIndex+"/"+pod+"/"+pair+"/"+pair)
                         old_windex = json.load(f)
                         f.close()
-        
+
                         for word in self.windex[pod][pair]:
                             if old_windex.has_key(word):
                                 old_windex[word][self.project] = self.windex[pod][pair][word][self.project]
                             else:
                                 old_windex[word] = self.windex[pod][pair][word]
-                        
+
                         f = open(self.wordIndex+"/"+pod+"/"+pair+"/"+pair, "w")
                         json.dump(old_windex, f)
                         f.close()
@@ -110,7 +117,7 @@ class Index():
                         f = open(odir+"/"+pair, "w")
                         json.dump(self.windex[pod][pair], f)
                         f.close()
-                        
+
         def indexProjectLanguage(self, pod):
             self.indexmeta[pod] = {}
             self.windex[pod] = {}
@@ -121,7 +128,7 @@ class Index():
             print pod
             print self.projectDir+"/"+pod
             po = polib.pofile(self.projectDir+"/"+pod)
-            
+
             for entry in po.translated_entries():
                 # entry.msgid, entry.msgstr
                 sanitised = self.pattern.sub(' ', entry.msgstr)
@@ -137,7 +144,7 @@ class Index():
                     if len(word)>1:
                         wlower = word.lower()
                         pair = wlower[0:2]
-                        
+
                         if not self.windex[pod].has_key(pair):
                             self.windex[pod][pair] = {wlower:{self.project:[]}}
                         else:
