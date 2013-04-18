@@ -38,7 +38,7 @@ class CLIParser:
         (opts, args) = parser.parse_args()
 
         contextCount = 0
-        for context in ["source", "fullIndex", "partialIndex"]:
+        for context in ["search", "fullIndex", "partialIndex"]:
             if context in dir(opts):
                 if getattr(opts, context):
                     contextCount += 1
