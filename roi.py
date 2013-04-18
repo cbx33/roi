@@ -33,6 +33,11 @@ class ROIIndexer(object):
         indexObject = Index.Index(self.config)
         indexObject.fullIndex(source)
 
+    def indexSingleProject(self, projectDir):
+        indexObject = Index.Index(self.config)
+        indexObject.source = os.path.normpath(os.path.join(projectDir, ".."))
+        indexObject.indexSingleProject(os.path.basename(projectDir))
+
     class Config(object):
 
         def __init__(self, configFileName):
@@ -76,7 +81,12 @@ def main():
     parserObject = CLI.CLIParser()
     opts = parserObject.returnOptions()
     index = ROIIndexer(opts.cfg_file)
-    index.search(opts.query, opts.origin, opts.target)
-    
+    if opts.search:
+        index.search(opts.query, opts.origin, opts.target)
+    if opts.fullIndex:
+        index.fullIndex(opts.sourceDir)
+    if opts.partialIndex:
+        index.indexSingleProject(opts.projectDir)
+
 if __name__ == "__main__":
     main()

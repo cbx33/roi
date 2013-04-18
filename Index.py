@@ -31,6 +31,11 @@ class Index():
         self.transIndex = self.config.transIndex
         self.packSize = self.config.packSize
 
+    def indexSingleProject(self, projectName):
+        projectInstance = self.Project(projectName, self.transIndex, self.wordIndex, self.packSize, self.source)
+        projectInstance.indexProject()
+        return projectInstance.counter
+
     def fullIndex(self, source):
         self.counter = 0
         self.source = source
@@ -43,9 +48,7 @@ class Index():
             raise Error.ROIIndexError(Error.WordIndexNotEmpty)
 
         for projectName in os.listdir(self.source):
-            projectInstance = self.Project(projectName, self.transIndex, self.wordIndex, self.packSize, self.source)
-            projectInstance.indexProject()
-            self.counter += projectInstance.counter
+            self.counter = self.indexSingleProject(projectName)
         print self.counter
 
     class Project():
